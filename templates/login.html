@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>教育平台 - 登录注册</title>
+  <!-- 引入Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- 引入Font Awesome -->
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+
+  <!-- 配置Tailwind -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#3b82f6', // 主色调：蓝色，代表专业和信任
+            secondary: '#10b981', // 辅助色：绿色，代表成长和希望
+            neutral: {
+              100: '#f3f4f6',
+              200: '#e5e7eb',
+              300: '#d1d5db',
+              700: '#374151',
+              800: '#1f2937',
+              900: '#111827'
+            }
+          },
+          fontFamily: {
+            inter: ['Inter', 'system-ui', 'sans-serif'],
+          },
+        },
+      }
+    }
+  </script>
+
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .content-auto {
+        content-visibility: auto;
+      }
+      .bg-gradient-education {
+        background: linear-gradient(135deg, #3b82f6 0%, #10b981 100%);
+      }
+      .text-shadow {
+        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+      .transition-custom {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      .scale-hover {
+        transition: transform 0.2s ease;
+      }
+      .scale-hover:hover {
+        transform: scale(1.02);
+      }
+      .error-message {
+        @apply text-red-500 text-sm mt-1;
+      }
+      .loading-spinner {
+        @apply animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full;
+      }
+    }
+  </style>
+</head>
+<body class="font-inter bg-neutral-100 min-h-screen flex items-center justify-center p-4 md:p-0">
+  <!-- 主容器 -->
+  <div class="w-full max-w-6xl bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col md:flex-row">
+
+    <!-- 左侧：品牌展示区 -->
+    <div class="bg-gradient-education text-white p-8 md:p-12 lg:p-16 flex flex-col justify-between md:w-1/2 hidden md:flex">
+      <div>
+        <h1 class="text-[clamp(1.8rem,5vw,2.5rem)] font-bold mb-2 text-shadow">教育连接未来</h1>
+        <p class="text-white/90 mb-8 text-lg">为师生打造的专业学习平台</p>
+
+        <!-- 特色展示 -->
+        <div class="space-y-6 mt-12">
+          <div class="flex items-start">
+            <div class="bg-white/20 p-3 rounded-full mr-4">
+              <i class="fa fa-graduation-cap text-xl"></i>
+            </div>
+            <div>
+              <h3 class="text-xl font-semibold mb-1">专属学习空间</h3>
+              <p class="text-white/80">为学生和教师提供个性化的教学环境</p>
+            </div>
+          </div>
+
+          <div class="flex items-start">
+            <div class="bg-white/20 p-3 rounded-full mr-4">
+              <i class="fa fa-comments text-xl"></i>
+            </div>
+            <div>
+              <h3 class="text-xl font-semibold mb-1">师生互动社区</h3>
+              <p class="text-white/80">促进教学相长，构建良好学习氛围</p>
+            </div>
+          </div>
+
+          <div class="flex items-start">
+            <div class="bg-white/20 p-3 rounded-full mr-4">
+              <i class="fa fa-line-chart text-xl"></i>
+            </div>
+            <div>
+              <h3 class="text-xl font-semibold mb-1">学习进度追踪</h3>
+              <p class="text-white/80">科学记录学习历程，助力持续进步</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 底部装饰 -->
+      <div class="mt-16">
+        <p class="text-white/70 text-sm">&copy; 2025 教育平台 版权所有</p>
+      </div>
+    </div>
+
+    <!-- 右侧：表单区域 -->
+    <div class="p-8 md:p-12 lg:p-16 md:w-1/2 flex flex-col">
+      <!-- 移动端品牌展示 -->
+      <div class="md:hidden mb-8">
+        <h2 class="text-2xl font-bold text-neutral-800">教育连接未来</h2>
+        <p class="text-neutral-600">为师生打造的专业学习平台</p>
+      </div>
+
+      <!-- 切换按钮 -->
+      <div class="flex rounded-lg overflow-hidden mb-8 border border-neutral-200">
+        <button id="loginBtn" class="flex-1 py-3 px-4 bg-primary text-white font-medium transition-custom">
+          登录
+        </button>
+        <button id="registerBtn" class="flex-1 py-3 px-4 bg-white text-neutral-700 font-medium transition-custom">
+          注册
+        </button>
+      </div>
+
+      <!-- 身份选择 -->
+      <div class="mb-8">
+        <label class="block text-neutral-700 font-medium mb-2">身份选择</label>
+        <div class="flex rounded-lg overflow-hidden border border-neutral-200">
+          <button id="studentBtn" class="flex-1 py-3 px-4 bg-primary text-white font-medium transition-custom flex items-center justify-center">
+            <i class="fa fa-user-circle mr-2"></i> 学生
+          </button>
+          <button id="teacherBtn" class="flex-1 py-3 px-4 bg-white text-neutral-700 font-medium transition-custom flex items-center justify-center">
+            <i class="fa fa-briefcase mr-2"></i> 老师
+          </button>
+        </div>
+      </div>
+
+      <!-- 登录表单 -->
+      <div id="loginForm" class="space-y-6">
+        <div>
+          <label for="loginUsername" class="block text-neutral-700 font-medium mb-2">用户名</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-neutral-500">
+              <i class="fa fa-user"></i>
+            </span>
+            <input type="text" id="loginUsername" class="w-full pl-10 pr-4 py-3 rounded-lg border border-neutral-300 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-custom" placeholder="请输入用户名">
+            <div id="loginUsernameError" class="error-message hidden"></div>
+          </div>
+        </div>
+
+        <div>
+          <label for="loginPassword" class="block text-neutral-700 font-medium mb-2">密码</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-neutral-500">
+              <i class="fa fa-lock"></i>
+            </span>
+            <input type="password" id="loginPassword" class="w-full pl-10 pr-10 py-3 rounded-lg border border-neutral-300 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-custom" placeholder="请输入密码">
+            <button type="button" id="toggleLoginPassword" class="absolute inset-y-0 right-0 flex items-center pr-3 text-neutral-500 hover:text-neutral-700 transition-custom">
+              <i class="fa fa-eye-slash"></i>
+            </button>
+            <div id="loginPasswordError" class="error-message hidden"></div>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between">
+          <label class="flex items-center cursor-pointer">
+            <input type="checkbox" class="form-checkbox h-5 w-5 text-primary rounded border-neutral-300 focus:ring-primary/30">
+            <span class="ml-2 text-neutral-600 text-sm">记住我</span>
+          </label>
+          <a href="#" class="text-primary hover:text-primary/80 text-sm font-medium transition-custom">忘记密码?</a>
+        </div>
+
+        <button id="submitLogin" class="w-full bg-primary hover:bg-primary/90 text-white font-medium py-3 px-4 rounded-lg transition-custom scale-hover flex items-center justify-center">
+          <span id="loginText"><i class="fa fa-sign-in mr-2"></i> 登录</span>
+          <span id="loginSpinner" class="hidden"><div class="loading-spinner mr-2"></div> 登录中...</span>
+        </button>
+        <div id="loginError" class="error-message hidden text-center"></div>
+      </div>
+
+      <!-- 注册表单 (默认隐藏) -->
+      <div id="registerForm" class="space-y-6 hidden">
+        <div>
+          <label for="regUsername" class="block text-neutral-700 font-medium mb-2">用户名</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-neutral-500">
+              <i class="fa fa-user-plus"></i>
+            </span>
+            <input type="text" id="regUsername" class="w-full pl-10 pr-4 py-3 rounded-lg border border-neutral-300 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-custom" placeholder="请设置用户名">
+            <div id="regUsernameError" class="error-message hidden"></div>
+          </div>
+        </div>
+
+        <div>
+          <label for="regEmail" class="block text-neutral-700 font-medium mb-2">邮箱</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-neutral-500">
+              <i class="fa fa-envelope"></i>
+            </span>
+            <input type="email" id="regEmail" class="w-full pl-10 pr-4 py-3 rounded-lg border border-neutral-300 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-custom" placeholder="请输入邮箱地址">
+            <div id="regEmailError" class="error-message hidden"></div>
+          </div>
+        </div>
+
+        <div id="studentIdField" class="block">
+          <label for="studentId" class="block text-neutral-700 font-medium mb-2">学号</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-neutral-500">
+              <i class="fa fa-id-card"></i>
+            </span>
+            <input type="text" id="studentId" class="w-full pl-10 pr-4 py-3 rounded-lg border border-neutral-300 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-custom" placeholder="请输入学号">
+            <div id="studentIdError" class="error-message hidden"></div>
+          </div>
+        </div>
+
+        <div id="teacherIdField" class="hidden">
+          <label for="teacherId" class="block text-neutral-700 font-medium mb-2">教师编号</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-neutral-500">
+              <i class="fa fa-id-card"></i>
+            </span>
+            <input type="text" id="teacherId" class="w-full pl-10 pr-4 py-3 rounded-lg border border-neutral-300 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-custom" placeholder="请输入教师编号">
+            <div id="teacherIdError" class="error-message hidden"></div>
+          </div>
+        </div>
+
+        <div>
+          <label for="regPassword" class="block text-neutral-700 font-medium mb-2">密码</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-neutral-500">
+              <i class="fa fa-lock"></i>
+            </span>
+            <input type="password" id="regPassword" class="w-full pl-10 pr-10 py-3 rounded-lg border border-neutral-300 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-custom" placeholder="请设置密码">
+            <button type="button" id="toggleRegPassword" class="absolute inset-y-0 right-0 flex items-center pr-3 text-neutral-500 hover:text-neutral-700 transition-custom">
+              <i class="fa fa-eye-slash"></i>
+            </button>
+            <div id="regPasswordError" class="error-message hidden"></div>
+          </div>
+        </div>
+
+        <div>
+          <label for="regConfirmPassword" class="block text-neutral-700 font-medium mb-2">确认密码</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-neutral-500">
+              <i class="fa fa-lock"></i>
+            </span>
+            <input type="password" id="regConfirmPassword" class="w-full pl-10 pr-10 py-3 rounded-lg border border-neutral-300 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-custom" placeholder="请再次输入密码">
+            <button type="button" id="toggleConfirmPassword" class="absolute inset-y-0 right-0 flex items-center pr-3 text-neutral-500 hover:text-neutral-700 transition-custom">
+              <i class="fa fa-eye-slash"></i>
+            </button>
+            <div id="regConfirmPasswordError" class="error-message hidden"></div>
+          </div>
+        </div>
+
+        <label class="flex items-start cursor-pointer">
+          <input type="checkbox" id="agreeTerms" class="form-checkbox h-5 w-5 text-primary rounded border-neutral-300 focus:ring-primary/30 mt-1">
+          <span class="ml-2 text-neutral-600 text-sm">我已阅读并同意<a href="#" class="text-primary hover:underline">用户协议</a>和<a href="#" class="text-primary hover:underline">隐私政策</a></span>
+          <div id="agreeTermsError" class="error-message hidden ml-2"></div>
+        </label>
+
+        <button id="submitRegister" class="w-full bg-primary hover:bg-primary/90 text-white font-medium py-3 px-4 rounded-lg transition-custom scale-hover flex items-center justify-center">
+          <span id="registerText"><i class="fa fa-user-plus mr-2"></i> 注册</span>
+          <span id="registerSpinner" class="hidden"><div class="loading-spinner mr-2"></div> 注册中...</span>
+        </button>
+        <div id="registerError" class="error-message hidden text-center"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 配置API基础URL
+    const API_BASE_URL = 'http://localhost:5000'; // 后端服务地址，请根据实际情况修改
+
+    // DOM元素
+    const loginBtn = document.getElementById('loginBtn');
+    const registerBtn = document.getElementById('registerBtn');
+    const loginForm = document.getElementById('loginForm');
+    const registerForm = document.getElementById('registerForm');
+    const studentBtn = document.getElementById('studentBtn');
+    const teacherBtn = document.getElementById('teacherBtn');
+    const studentIdField = document.getElementById('studentIdField');
+    const teacherIdField = document.getElementById('teacherIdField');
+    const toggleLoginPassword = document.getElementById('toggleLoginPassword');
+    const toggleRegPassword = document.getElementById('toggleRegPassword');
+    const toggleConfirmPassword = document.getElementById('toggleConfirmPassword');
+    const loginPassword = document.getElementById('loginPassword');
+    const regPassword = document.getElementById('regPassword');
+    const regConfirmPassword = document.getElementById('regConfirmPassword');
+    const submitLogin = document.getElementById('submitLogin');
+    const submitRegister = document.getElementById('submitRegister');
+
+    // 加载状态元素
+    const loginText = document.getElementById('loginText');
+    const loginSpinner = document.getElementById('loginSpinner');
+    const registerText = document.getElementById('registerText');
+    const registerSpinner = document.getElementById('registerSpinner');
+
+    // 切换登录/注册表单
+    loginBtn.addEventListener('click', () => {
+      loginBtn.classList.remove('bg-white', 'text-neutral-700');
+      loginBtn.classList.add('bg-primary', 'text-white');
+      registerBtn.classList.remove('bg-primary', 'text-white');
+      registerBtn.classList.add('bg-white', 'text-neutral-700');
+      loginForm.classList.remove('hidden');
+      registerForm.classList.add('hidden');
+      clearAllErrors();
+    });
+
+    registerBtn.addEventListener('click', () => {
+      registerBtn.classList.remove('bg-white', 'text-neutral-700');
+      registerBtn.classList.add('bg-primary', 'text-white');
+      loginBtn.classList.remove('bg-primary', 'text-white');
+      loginBtn.classList.add('bg-white', 'text-neutral-700');
+      registerForm.classList.remove('hidden');
+      loginForm.classList.add('hidden');
+      clearAllErrors();
+    });
+
+    // 切换学生/老师身份
+    studentBtn.addEventListener('click', () => {
+      studentBtn.classList.remove('bg-white', 'text-neutral-700');
+      studentBtn.classList.add('bg-primary', 'text-white');
+      teacherBtn.classList.remove('bg-primary', 'text-white');
+      teacherBtn.classList.add('bg-white', 'text-neutral-700');
+      studentIdField.classList.remove('hidden');
+      studentIdField.classList.add('block');
+      teacherIdField.classList.remove('block');
+      teacherIdField.classList.add('hidden');
+      clearIdErrors();
+    });
+
+    teacherBtn.addEventListener('click', () => {
+      teacherBtn.classList.remove('bg-white', 'text-neutral-700');
+      teacherBtn.classList.add('bg-primary', 'text-white');
+      studentBtn.classList.remove('bg-primary', 'text-white');
+      studentBtn.classList.add('bg-white', 'text-neutral-700');
+      teacherIdField.classList.remove('hidden');
+      teacherIdField.classList.add('block');
+      studentIdField.classList.remove('block');
+      studentIdField.classList.add('hidden');
+      clearIdErrors();
+    });
+
+    // 密码显示/隐藏切换
+    function togglePassword(field, button) {
+      const type = field.getAttribute('type') === 'password' ? 'text' : 'password';
+      field.setAttribute('type', type);
+      button.innerHTML = type === 'password' ? '<i class="fa fa-eye-slash"></i>' : '<i class="fa fa-eye"></i>';
+    }
+
+    toggleLoginPassword.addEventListener('click', () => togglePassword(loginPassword, toggleLoginPassword));
+    toggleRegPassword.addEventListener('click', () => togglePassword(regPassword, toggleRegPassword));
+    toggleConfirmPassword.addEventListener('click', () => togglePassword(regConfirmPassword, toggleConfirmPassword));
+
+    // 显示错误信息
+    function showError(elementId, message) {
+      const errorElement = document.getElementById(elementId);
+      errorElement.textContent = message;
+      errorElement.classList.remove('hidden');
+      // 添加输入框红色边框
+      const inputElement = document.getElementById(elementId.replace('Error', ''));
+      if (inputElement) {
+        inputElement.classList.add('border-red-500');
+        inputElement.classList.remove('border-neutral-300', 'focus:border-primary');
+      }
+    }
+
+    // 隐藏错误信息
+    function hideError(elementId) {
+      const errorElement = document.getElementById(elementId);
+      errorElement.classList.add('hidden');
+      // 恢复输入框样式
+      const inputElement = document.getElementById(elementId.replace('Error', ''));
+      if (inputElement) {
+        inputElement.classList.remove('border-red-500');
+        inputElement.classList.add('border-neutral-300', 'focus:border-primary');
+      }
+    }
+
+    // 清除所有错误信息
+    function clearAllErrors() {
+      document.querySelectorAll('.error-message').forEach(el => {
+        el.classList.add('hidden');
+      });
+      document.querySelectorAll('input').forEach(input => {
+        input.classList.remove('border-red-500');
+        input.classList.add('border-neutral-300', 'focus:border-primary');
+      });
+    }
+
+    // 清除ID相关错误
+    function clearIdErrors() {
+      hideError('studentIdError');
+      hideError('teacherIdError');
+    }
+
+    // 登录表单提交
+    submitLogin.addEventListener('click', async () => {
+      clearAllErrors();
+      const username = document.getElementById('loginUsername').value.trim();
+      const password = loginPassword.value.trim();
+      const isStudent = studentBtn.classList.contains('bg-primary');
+      const role = isStudent ? 'student' : 'teacher';
+      let isValid = true;
+
+      // 前端验证
+      if (!username) {
+        showError('loginUsernameError', '请输入用户名');
+        isValid = false;
+      }
+      if (!password) {
+        showError('loginPasswordError', '请输入密码');
+        isValid = false;
+      }
+
+      if (!isValid) return;
+
+      // 显示加载状态
+      loginText.classList.add('hidden');
+      loginSpinner.classList.remove('hidden');
+      submitLogin.disabled = true;
+
+      try {
+        // 发送登录请求
+        const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            role: role,
+            username: username,
+            password: password
+          })
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+        // 保存token和用户信息
+            localStorage.setItem('token', data.token);
+            localStorage.setItem('user', JSON.stringify(data.user));
+
+        // 根据角色跳转不同页面
+            const user = data.user;
+        if (user.role === 'teacher') {
+        // 教师跳转到教师作业管理页
+            window.location.href = '/teacher-assignment.html';
+        }
+        else if (user.role === 'student') {
+        // 学生跳转到学生作业列表页
+            window.location.href = '/student-assignment.html';}
+
+        } else {
+          // 显示错误信息
+          showError('loginError', data.message || '登录失败，请检查用户名或密码');
+        }
+      } catch (error) {
+        console.error('登录请求失败:', error);
+        showError('loginError', '服务器连接失败，请稍后再试');
+      } finally {
+        // 恢复按钮状态
+        loginText.classList.remove('hidden');
+        loginSpinner.classList.add('hidden');
+        submitLogin.disabled = false;
+      }
+    });
+
+    // 注册表单提交
+    submitRegister.addEventListener('click', async () => {
+      clearAllErrors();
+      const username = document.getElementById('regUsername').value.trim();
+      const email = document.getElementById('regEmail').value.trim();
+      const password = regPassword.value.trim();
+      const confirmPassword = regConfirmPassword.value.trim();
+      const isStudent = studentBtn.classList.contains('bg-primary');
+      const role = isStudent ? 'student' : 'teacher';
+      const id = isStudent
+        ? document.getElementById('studentId').value.trim()
+        : document.getElementById('teacherId').value.trim();
+      const agreeTerms = document.getElementById('agreeTerms').checked;
+
+      let isValid = true;
+
+      // 前端验证
+      if (!username) {
+        showError('regUsernameError', '请输入用户名');
+        isValid = false;
+      }
+
+      if (!email) {
+        showError('regEmailError', '请输入邮箱');
+        isValid = false;
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        showError('regEmailError', '请输入有效的邮箱地址');
+        isValid = false;
+      }
+
+      if (!id) {
+        showError(isStudent ? 'studentIdError' : 'teacherIdError',
+          isStudent ? '请输入学号' : '请输入教师编号');
+        isValid = false;
+      }
+
+      if (!password) {
+        showError('regPasswordError', '请设置密码');
+        isValid = false;
+      } else if (password.length < 6) {
+        showError('regPasswordError', '密码长度不能少于6位');
+        isValid = false;
+      }
+
+      if (!confirmPassword) {
+        showError('regConfirmPasswordError', '请确认密码');
+        isValid = false;
+      } else if (password !== confirmPassword) {
+        showError('regConfirmPasswordError', '两次输入的密码不一致');
+        isValid = false;
+      }
+
+      if (!agreeTerms) {
+        showError('agreeTermsError', '请阅读并同意用户协议和隐私政策');
+        isValid = false;
+      }
+
+      if (!isValid) return;
+
+      // 显示加载状态
+      registerText.classList.add('hidden');
+      registerSpinner.classList.remove('hidden');
+      submitRegister.disabled = true;
+
+      try {
+        // 构建注册数据
+        const registerData = {
+          role: role,
+          username: username,
+          email: email,
+          password: password,
+        };
+
+        // 添加身份ID
+        if (isStudent) {
+          registerData.student_id = id;
+        } else {
+          registerData.teacher_id = id;
+        }
+
+        // 发送注册请求
+        const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(registerData)
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+          // 注册成功，保存token并切换到登录表单
+          localStorage.setItem('token', data.token);
+          localStorage.setItem('user', JSON.stringify(data.user));
+
+          alert(`注册成功！您的身份是${isStudent ? '学生' : '老师'}`);
+          loginBtn.click(); // 切换到登录表单
+
+          // 自动填充用户名
+          document.getElementById('loginUsername').value = username;
+        } else {
+          // 显示错误信息
+          showError('registerError', data.message || '注册失败，请稍后再试');
+        }
+      } catch (error) {
+        console.error('注册请求失败:', error);
+        showError('registerError', '服务器连接失败，请稍后再试');
+      } finally {
+        // 恢复按钮状态
+        registerText.classList.remove('hidden');
+        registerSpinner.classList.add('hidden');
+        submitRegister.disabled = false;
+      }
+    });
+
+    // 输入框实时验证
+    document.getElementById('loginUsername').addEventListener('input', () => {
+      hideError('loginUsernameError');
+      hideError('loginError');
+    });
+
+    document.getElementById('loginPassword').addEventListener('input', () => {
+      hideError('loginPasswordError');
+      hideError('loginError');
+    });
+
+    // 注册表单输入验证
+    document.getElementById('regUsername').addEventListener('input', () => hideError('regUsernameError'));
+    document.getElementById('regEmail').addEventListener('input', () => hideError('regEmailError'));
+    document.getElementById('studentId').addEventListener('input', () => hideError('studentIdError'));
+    document.getElementById('teacherId').addEventListener('input', () => hideError('teacherIdError'));
+    document.getElementById('regPassword').addEventListener('input', () => {
+      hideError('regPasswordError');
+      hideError('regConfirmPasswordError');
+    });
+    document.getElementById('regConfirmPassword').addEventListener('input', () => hideError('regConfirmPasswordError'));
+    document.getElementById('agreeTerms').addEventListener('change', () => hideError('agreeTermsError'));
+
+    // 添加页面载入动画
+    window.addEventListener('load', () => {
+      document.body.classList.add('opacity-100');
+      document.body.classList.remove('opacity-0');
+    });
+  </script>
+</body>
+</html>
