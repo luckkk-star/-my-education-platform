@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>学生端 - 提交历史</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+          theme: {
+            extend: {
+              colors: {
+                primary: '#3b82f6',
+                success: '#10b981',
+                warning: '#f59e0b',
+                danger: '#ef4444',
+                neutral: {
+                  100: '#f3f4f6',
+                  200: '#e5e7eb',
+                  300: '#d1d5db',
+                  700: '#374151',
+                  800: '#1f2937',
+                  900: '#111827'
+                }
+              },
+            },
+          }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+          .content-auto {
+            content-visibility: auto;
+          }
+          .transition-custom {
+            transition: all 0.3s ease;
+          }
+        }
+    </style>
+</head>
+<body class="bg-neutral-100 min-h-screen">
+<!-- 导航栏 -->
+<nav class="bg-white shadow-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between h-16">
+            <div class="flex items-center">
+                <a href="#" class="flex-shrink-0 flex items-center">
+                    <i class="fa fa-graduation-cap text-primary text-2xl mr-2"></i>
+                    <span class="font-bold text-xl text-neutral-800">教育平台</span>
+                </a>
+                <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
+                    <a href="student-assignment.html"
+                       class="border-transparent text-neutral-500 hover:border-neutral-300 hover:text-neutral-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                        作业列表
+                    </a>
+                    <a href="#"
+                       class="border-primary text-primary inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                        我的提交
+                    </a>
+                </div>
+            </div>
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <button id="logoutBtn"
+                            class="relative inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-500 hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                        <i class="fa fa-sign-out mr-2"></i>退出登录
+                    </button>
+                </div>
+                <div class="ml-3 relative">
+                    <div class="flex items-center max-w-xs rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                        <span class="text-neutral-700 mr-2" id="usernameDisplay">学生名称</span>
+                        <i class="fa fa-user-circle text-2xl text-neutral-600"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- 主内容区 -->
+<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- 页面标题 -->
+    <div class="mb-8">
+        <h1 class="text-2xl font-bold text-neutral-800">我的提交历史</h1>
+        <p class="text-neutral-600 mt-1">查看已提交的作业和批改结果</p>
+    </div>
+
+    <!-- 提交历史列表 -->
+    <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-neutral-200">
+                <thead class="bg-neutral-50">
+                <tr>
+                    <th scope="col"
+                        class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">作业标题
+                    </th>
+                    <th scope="col"
+                        class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">提交时间
+                    </th>
+                    <th scope="col"
+                        class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">提交文件
+                    </th>
+                    <th scope="col"
+                        class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">成绩
+                    </th>
+                    <th scope="col"
+                        class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">状态
+                    </th>
+                    <th scope="col"
+                        class="px-6 py-3 text-right text-xs font-medium text-neutral-500 uppercase tracking-wider">操作
+                    </th>
+                </tr>
+                </thead>
+                <tbody id="submissionsTableBody" class="bg-white divide-y divide-neutral-200">
+                <!-- 提交历史将通过JavaScript动态填充 -->
+                <tr>
+                    <td colspan="5" class="px-6 py-10 text-center text-neutral-500">
+                        <i class="fa fa-spinner fa-spin mr-2"></i>加载提交历史中...
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</main>
+
+<!-- 查看批改详情模态框 -->
+<div id="feedbackModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <div class="px-6 py-4 border-b border-neutral-200">
+            <div class="flex justify-between items-center">
+                <h3 class="text-lg font-medium text-neutral-900">批改详情</h3>
+                <button id="closeFeedbackModalBtn" class="text-neutral-500 hover:text-neutral-700">
+                    <i class="fa fa-times"></i>
+                </button>
+            </div>
+        </div>
+        <div class="px-6 py-4">
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-neutral-700 mb-1">作业标题</label>
+                <p id="feedbackAssignmentTitle" class="text-neutral-900 font-medium"></p>
+            </div>
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-neutral-700 mb-1">提交内容</label>
+                <div id="feedbackSubmissionContent"
+                     class="border border-neutral-300 rounded-md p-3 bg-neutral-50 min-h-[100px]"></div>
+            </div>
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-neutral-700 mb-1">提交文件</label>
+                <div id="feedbackFileUrl" class="text-sm">
+                    <!-- 文件链接将通过JS动态填充 -->
+                </div>
+            </div>
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-neutral-700 mb-1">成绩</label>
+                <p id="feedbackScore" class="text-neutral-900"></p>
+            </div>
+            <div id="feedbackContentContainer">
+                <!-- AI评价和教师评语将通过JS动态插入这里 -->
+            </div>
+
+            <div class="mb-4">
+            <label class="block text-sm font-medium text-neutral-700 mb-1">批改时间</label>
+            <p id="feedbackGradedAt" class="text-neutral-500 text-sm"></p>
+            </div>
+        </div>
+
+        <div class="px-6 py-4 bg-neutral-50 rounded-b-lg flex justify-end">
+            <button id="closeFeedbackBtn"
+                    class="inline-flex items-center px-4 py-2 border border-neutral-300 rounded-md shadow-sm text-sm font-medium text-neutral-700 bg-white hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                关闭
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // API基础URL（与登录页保持一致）
+    const API_BASE_URL = 'http://localhost:5000';
+
+    // 页面加载时验证登录状态并加载数据
+    document.addEventListener('DOMContentLoaded', () => {
+      const token = localStorage.getItem('token');
+      const user = JSON.parse(localStorage.getItem('user'));
+
+      // 验证登录状态和角色
+      if (!token || !user || user.role !== 'student') {
+        // 未登录或非学生，跳回登录页
+        window.location.href = '/';
+        return;
+      }
+
+      // 显示用户名
+      document.getElementById('usernameDisplay').textContent = user.username;
+
+      // 加载提交历史
+      loadSubmissions();
+
+      // 绑定事件
+      bindEventListeners();
+    });
+
+    // 绑定事件监听器
+    function bindEventListeners() {
+      // 登出按钮
+      document.getElementById('logoutBtn').addEventListener('click', logout);
+
+      // 批改详情模态框
+      document.getElementById('closeFeedbackModalBtn').addEventListener('click', closeFeedbackModal);
+      document.getElementById('closeFeedbackBtn').addEventListener('click', closeFeedbackModal);
+    }
+// 关闭批改详情模态框
+function closeFeedbackModal() {
+  document.getElementById('feedbackModal').classList.add('hidden');
+}
+    // 加载提交历史
+    async function loadSubmissions() {
+      const token = localStorage.getItem('token');
+      const tableBody = document.getElementById('submissionsTableBody');
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/student/submissions`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error('获取提交历史失败');
+        }
+
+        const data = await response.json();
+        const submissions = data.success ? data.data : data; // 兼容不同返回格式
+
+        if (submissions.length === 0) {
+          tableBody.innerHTML = `
+            <tr>
+              <td colspan="6" class="px-6 py-10 text-center text-neutral-500">
+                暂无提交记录
+              </td>
+            </tr>
+          `;
+          return;
+        }
+
+        // 填充表格
+        tableBody.innerHTML = '';
+        submissions.forEach(submission => {
+          const row = document.createElement('tr');
+          row.className = 'hover:bg-neutral-50 transition-custom';
+
+          // 格式化时间
+          const submittedAt = new Date(submission.submitted_at).toLocaleString();
+          const gradedAt = submission.graded_at ? new Date(submission.graded_at).toLocaleString() : '未批改';
+
+          // 状态标签
+          let statusLabel = '';
+          if (submission.score !== null) {
+            statusLabel = `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">已批改</span>`;
+          } else {
+            statusLabel = `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">待批改</span>`;
+          }
+
+          // 成绩显示
+          let scoreDisplay = submission.score !== null
+            ? `<span class="text-neutral-900">${submission.score}（教师评分）</span>`
+            : '<span class="text-neutral-500">未批改</span>';
+          // 添加AI评分显示
+          if (submission.ai_score !== null) {
+              scoreDisplay += `<br><span class="text-neutral-600 text-sm">AI评分: ${submission.ai_score}</span>`;
+          }
+
+          row.innerHTML = `
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm font-medium text-neutral-900">${submission.title}</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm text-neutral-500">${submittedAt}</div>
+            </td>
+             <td class="px-6 py-4 whitespace-nowrap">
+             ${submission.file_url? `
+             <a href="${submission.file_url}" target="_blank" class="text-primary hover:underline flex items-center">
+             <i class="fa fa-file-pdf-o mr-1"></i> 查看文件
+              </a>`
+            : '<span class="text-neutral-500">无文件</span>'}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm ${submission.score !== null ? 'text-neutral-900' : 'text-neutral-500'}">${scoreDisplay}</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              ${statusLabel}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+              <button onclick="viewFeedback('${encodeURIComponent(JSON.stringify(submission))}')"
+          class="text-primary hover:text-primary/80">
+    查看详情
+  </button>
+            </td>
+          `;
+          tableBody.appendChild(row);
+        });
+      } catch (error) {
+        console.error('加载提交历史失败:', error);
+        tableBody.innerHTML = `
+          <tr>
+            <td colspan="6" class="px-6 py-10 text-center text-red-500">
+              加载失败: ${error.message}
+            </td>
+          </tr>
+        `;
+      }
+    }
+
+    // 查看批改详情
+    window.viewFeedback = function(encodedSubmission) {
+  // 解码并解析数据
+  const submission = JSON.parse(decodeURIComponent(encodedSubmission));
+
+  // 以下为原有逻辑（保持不变）
+  document.getElementById('feedbackAssignmentTitle').textContent = submission.title || '未知标题';
+  document.getElementById('feedbackSubmissionContent').textContent = submission.content || '无内容';
+
+  // 处理提交文件显示
+  const fileContainer = document.getElementById('feedbackFileUrl');
+  if (submission.file_url) {
+      fileContainer.innerHTML = `<a href="${submission.file_url}" target="_blank" class="text-primary hover:underline flex items-center">
+                                  <i class="fa fa-file-pdf-o mr-1"></i> 下载提交的文件
+                                </a>`;
+  } else {
+      fileContainer.textContent = '无提交文件';
+  }
+
+  // 处理成绩显示
+  let scoreHtml = '';
+  if (submission.score !== null) {
+      scoreHtml = `<span class="text-neutral-900">${submission.score}（教师评分）</span>`;
+  } else {
+      scoreHtml = '<span class="text-neutral-500">未批改</span>';
+  }
+  if (submission.ai_score !== null) {
+      scoreHtml += `<br><span class="text-neutral-600 text-sm">AI评分: ${submission.ai_score}</span>`;
+  }
+  document.getElementById('feedbackScore').innerHTML = scoreHtml;
+
+  // 处理评语显示
+  let feedbackHtml = '';
+  if (submission.ai_feedback) {
+      feedbackHtml += `
+      <div class="mb-4">
+          <label class="block text-sm font-medium text-blue-700 mb-1">AI评价</label>
+          <div class="border border-blue-300 rounded-md p-3 bg-blue-50 min-h-[80px]">
+              ${escapeHtml(submission.ai_feedback)}
+          </div>
+      </div>
+      `;
+  }
+  feedbackHtml += `
+  <div class="mb-4">
+      <label class="block text-sm font-medium text-neutral-700 mb-1">教师评语</label>
+      <div class="border border-neutral-300 rounded-md p-3 bg-neutral-50 min-h-[80px]">
+          ${submission.feedback || (submission.score !== null ? '无评语' : '教师尚未批改')}
+      </div>
+  </div>
+  `;
+  document.getElementById('feedbackContentContainer').innerHTML = feedbackHtml;
+
+  // 处理批改时间
+  const gradedAt = submission.graded_at ? new Date(submission.graded_at).toLocaleString() : '未批改';
+  document.getElementById('feedbackGradedAt').textContent = gradedAt;
+
+  // 显示模态框
+  document.getElementById('feedbackModal').classList.remove('hidden');
+};
+
+    // 登出功能
+    function logout() {
+      if (confirm('确定要退出登录吗？')) {
+        // 清除本地存储
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        // 跳回登录页
+        window.location.href = '/';
+      }
+    }
+    // 补充HTML转义函数（放在script标签末尾）
+function escapeHtml(unsafe) {
+    if (!unsafe) return '';
+    return unsafe
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;")
+        .replace(/\n/g, "<br>"); // 额外处理换行符，使其在HTML中显示为换行
+}
+</script>
+</body>
+</html>
