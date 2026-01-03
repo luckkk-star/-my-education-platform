@@ -1,0 +1,1569 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>教师端 - 作业管理</title>
+  <!-- 引入Tailwind CSS框架：快速构建响应式界面 -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- 引入Font Awesome图标库：提供界面交互所需图标 -->
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <script>
+    // 配置Tailwind CSS自定义主题
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#3b82f6',       // 主色调：蓝色，用于主要按钮、链接
+            secondary: '#10b981',     // 辅助色：绿色，用于成功状态
+            neutral: {                // 中性色系列：用于文本、背景、边框
+              100: '#f3f4f6',
+              200: '#e5e7eb',
+              300: '#d1d5db',
+              700: '#374151',
+              800: '#1f2937',
+              900: '#111827'
+            }
+          },
+        },
+      }
+    }
+  </script>
+  <style type="text/tailwindcss">
+    /* 自定义Tailwind工具类 */
+    @layer utilities {
+      /* 内容可见性优化：提升渲染性能，仅渲染可视区域内容 */
+      .content-auto {
+        content-visibility: auto;
+      }
+      /* 统一过渡动画：所有交互元素的过渡效果 */
+      .transition-custom {
+        transition: all 0.3s ease;
+      }
+    }
+  </style>
+</head>
+<body class="bg-neutral-100 min-h-screen">
+  <!-- 导航栏组件：页面顶部导航，包含Logo、功能标签、用户操作 -->
+  <nav class="bg-white shadow-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between h-16">
+        <!-- 左侧Logo和功能标签 -->
+        <div class="flex items-center">
+          <a href="#" class="flex-shrink-0 flex items-center">
+            <i class="fa fa-graduation-cap text-primary text-2xl mr-2"></i>
+            <span class="font-bold text-xl text-neutral-800">教育平台</span>
+          </a>
+          <!-- 仅在sm及以上屏幕显示的导航标签 -->
+          <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
+            <a href="#" id="assignmentTab"
+               class="border-primary text-primary inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+              作业管理
+            </a>
+            <a href="#" id="classTab"
+               class="border-transparent text-neutral-500 hover:border-neutral-300 hover:text-neutral-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+              班级管理
+            </a>
+          </div>
+        </div>
+        <!-- 右侧用户操作区：退出按钮 + 用户信息 -->
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <button id="logoutBtn"
+                            class="relative inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-500 hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                        <i class="fa fa-sign-out mr-2"></i>退出登录
+            </button>
+          </div>
+          <div class="ml-3 relative">
+            <div id="userMenuButton"
+                 class="flex items-center max-w-xs rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+              <span class="text-neutral-700 mr-2" id="usernameDisplay">教师名称</span>
+              <i class="fa fa-user-circle text-2xl text-neutral-600"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- 主内容区：页面核心功能区域，包含作业管理和班级管理两大模块 -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- 作业管理区域：默认显示 -->
+    <div id="assignmentSection">
+      <!-- 页面标题和操作按钮 -->
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
+        <h1 class="text-2xl font-bold text-neutral-800 mb-4 sm:mb-0">作业管理</h1>
+        <button id="createAssignmentBtn"
+                class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+          <i class="fa fa-plus mr-2"></i>发布新作业
+        </button>
+      </div>
+
+      <!-- 作业列表：表格形式展示所有作业 -->
+      <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-8">
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-neutral-200">
+            <thead class="bg-neutral-50">
+              <tr>
+                <th scope="col"
+                    class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">作业标题
+                </th>
+                <th scope="col"
+                    class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">发布时间
+                </th>
+                <th scope="col"
+                    class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">截止时间
+                </th>
+                <th scope="col"
+                    class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">提交情况
+                </th>
+                <th scope="col"
+                    class="px-6 py-3 text-right text-xs font-medium text-neutral-500 uppercase tracking-wider">操作
+                </th>
+              </tr>
+            </thead>
+            <tbody id="assignmentsTableBody" class="bg-white divide-y divide-neutral-200">
+              <!-- 作业列表将通过JavaScript动态填充 -->
+              <tr>
+                <td colspan="5" class="px-6 py-10 text-center text-neutral-500">
+                  <i class="fa fa-spinner fa-spin mr-2"></i>加载作业中...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- 班级管理区域：默认隐藏，通过标签切换显示 -->
+    <div id="classSection" class="hidden">
+      <!-- 页面标题和操作按钮 -->
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
+        <h1 class="text-2xl font-bold text-neutral-800 mb-4 sm:mb-0">班级管理</h1>
+        <button id="createClassBtn"
+                class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+          <i class="fa fa-plus mr-2"></i>创建新班级
+        </button>
+      </div>
+
+      <!-- 班级列表：表格形式展示所有班级 -->
+      <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-neutral-200">
+            <thead class="bg-neutral-50">
+              <tr>
+                <th scope="col"
+                    class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">班级名称
+                </th>
+                <th scope="col"
+                    class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">班级代码
+                </th>
+                <th scope="col"
+                    class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">学生人数
+                </th>
+                <th scope="col"
+                    class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">创建时间
+                </th>
+                <th scope="col"
+                    class="px-6 py-3 text-right text-xs font-medium text-neutral-500 uppercase tracking-wider">操作
+                </th>
+              </tr>
+            </thead>
+            <tbody id="classesTableBody" class="bg-white divide-y divide-neutral-200">
+              <tr>
+                <td colspan="5" class="px-6 py-10 text-center text-neutral-500">
+                  <i class="fa fa-spinner fa-spin mr-2"></i>加载班级中...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- 发布作业模态框：创建/编辑作业的表单弹窗 -->
+  <div id="assignmentModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+      <div class="px-6 py-4 border-b border-neutral-200">
+        <div class="flex justify-between items-center">
+          <h3 class="text-lg font-medium text-neutral-900" id="modalTitle">发布新作业</h3>
+          <button id="closeModalBtn" class="text-neutral-500 hover:text-neutral-700">
+            <i class="fa fa-times"></i>
+          </button>
+        </div>
+      </div>
+      <div class="px-6 py-4">
+        <form id="assignmentForm">
+          <input type="hidden" id="assignmentId">
+          <div class="mb-4">
+            <label for="title" class="block text-sm font-medium text-neutral-700 mb-1">作业标题</label>
+            <input type="text" id="title" name="title" required
+                   class="w-full px-3 py-2 border border-neutral-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary">
+          </div>
+          <div class="mb-4">
+            <label for="description" class="block text-sm font-medium text-neutral-700 mb-1">作业描述</label>
+            <textarea id="description" name="description" rows="5"
+                      class="w-full px-3 py-2 border border-neutral-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary"></textarea>
+          </div>
+          <div class="mb-4">
+            <label for="classId" class="block text-sm font-medium text-neutral-700 mb-1">所属班级 <span class="text-red-500">*</span></label>
+            <select id="classId" name="classId" required
+                   class="w-full px-3 py-2 border border-neutral-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary">
+              <option value="">请选择班级</option>
+            </select>
+            <p class="text-xs text-neutral-500 mt-1">如果还没有班级，请先创建班级</p>
+          </div>
+          <div class="mb-4">
+            <label for="deadline" class="block text-sm font-medium text-neutral-700 mb-1">截止时间</label>
+            <input type="datetime-local" id="deadline" name="deadline" required
+                   class="w-full px-3 py-2 border border-neutral-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary">
+          </div>
+        </form>
+      </div>
+      <div class="px-6 py-4 bg-neutral-50 rounded-b-lg flex justify-end">
+        <button id="cancelBtn"
+                class="mr-3 inline-flex items-center px-4 py-2 border border-neutral-300 rounded-md shadow-sm text-sm font-medium text-neutral-700 bg-white hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+          取消
+        </button>
+        <button id="saveAssignmentBtn"
+                class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+          保存
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 作业提交情况模态框：查看作业的学生提交记录和统计信息 -->
+  <div id="submissionsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+      <div class="px-6 py-4 border-b border-neutral-200">
+        <div class="flex justify-between items-center">
+          <h3 class="text-lg font-medium text-neutral-900" id="submissionsModalTitle">作业提交情况</h3>
+          <button id="closeSubmissionsModalBtn" class="text-neutral-500 hover:text-neutral-700">
+            <i class="fa fa-times"></i>
+          </button>
+        </div>
+      </div>
+      <div class="px-6 py-4">
+        <!-- 统计信息：提交人数、成绩分布等 -->
+        <div id="submissionsStatistics" class="mb-4 space-y-4">
+          <!-- 提交情况统计 -->
+          <div class="p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <div class="grid grid-cols-3 gap-4 text-center">
+              <div>
+                <div class="text-2xl font-bold text-blue-600" id="totalStudentsCount">-</div>
+                <div class="text-sm text-blue-700 mt-1">班级总人数</div>
+              </div>
+              <div>
+                <div class="text-2xl font-bold text-green-600" id="submittedCount">-</div>
+                <div class="text-sm text-green-700 mt-1">已提交人数</div>
+              </div>
+              <div>
+                <div class="text-2xl font-bold text-red-600" id="notSubmittedCount">-</div>
+                <div class="text-sm text-red-700 mt-1">未提交人数</div>
+              </div>
+            </div>
+          </div>
+          <!-- 成绩统计 -->
+          <div class="p-4 bg-purple-50 rounded-lg border border-purple-200">
+            <h4 class="text-sm font-medium text-purple-800 mb-3 text-center">成绩统计</h4>
+            <div class="grid grid-cols-4 gap-4 text-center">
+              <div>
+                <div class="text-2xl font-bold text-purple-600" id="averageScore">-</div>
+                <div class="text-sm text-purple-700 mt-1">平均分</div>
+              </div>
+              <div>
+                <div class="text-2xl font-bold text-green-600" id="maxScore">-</div>
+                <div class="text-sm text-green-700 mt-1">最高分</div>
+              </div>
+              <div>
+                <div class="text-2xl font-bold text-orange-600" id="minScore">-</div>
+                <div class="text-sm text-orange-700 mt-1">最低分</div>
+              </div>
+              <div>
+                <div class="text-2xl font-bold text-gray-600" id="gradedCount">-</div>
+                <div class="text-sm text-gray-700 mt-1">已批改数</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- 提交列表表格 -->
+        <div id="submissionsTableContainer">
+          <table class="min-w-full divide-y divide-neutral-200">
+            <thead class="bg-neutral-50">
+              <tr>
+                <th scope="col"
+                    class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">学生
+                </th>
+                <th scope="col"
+                    class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
+                  提交时间
+                </th>
+                <th scope='col'
+                    class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">文件
+                </th>
+                <th scope="col"
+                    class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">成绩
+                </th>
+                <th scope="col"
+                    class="px-6 py-3 text-right text-xs font-medium text-neutral-500 uppercase tracking-wider">
+                  操作
+                </th>
+              </tr>
+            </thead>
+            <tbody id="submissionsTableBody" class="bg-white divide-y divide-neutral-200">
+              <!-- 提交列表将通过JavaScript动态填充 -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="px-6 py-4 bg-neutral-50 rounded-b-lg flex justify-end">
+        <button id="closeSubmissionsBtn"
+                class="inline-flex items-center px-4 py-2 border border-neutral-300 rounded-md shadow-sm text-sm font-medium text-neutral-700 bg-white hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+          关闭
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 批改作业模态框：为学生提交的作业打分和添加评语 -->
+  <div id="gradingModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+      <div class="px-6 py-4 border-b border-neutral-200">
+        <div class="flex justify-between items-center">
+          <h3 class="text-lg font-medium text-neutral-900">批改作业</h3>
+          <button id="closeGradingModalBtn" class="text-neutral-500 hover:text-neutral-700">
+            <i class="fa fa-times"></i>
+          </button>
+        </div>
+      </div>
+      <div class="px-6 py-4">
+        <form id="gradingForm">
+          <input type="hidden" id="submissionId">
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-neutral-700 mb-1">学生</label>
+            <p id="gradingStudentName" class="text-neutral-900"></p>
+          </div>
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-neutral-700 mb-1">提交内容</label>
+            <div id="submissionContent"
+                 class="border border-neutral-300 rounded-md p-3 bg-neutral-50 min-h-[100px]"></div>
+          </div>
+          <!-- 新增AI反馈容器：展示AI自动生成的评价 -->
+          <div id="aiFeedbackContainer"></div>
+          <div class="mb-4">
+            <label for="score" class="block text-sm font-medium text-neutral-700 mb-1">成绩</label>
+            <input type="number" id="score" name="score" min="0" max="100"
+                   class="w-full px-3 py-2 border border-neutral-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary">
+          </div>
+
+          <div class="mb-4">
+            <label for="feedback" class="block text-sm font-medium text-neutral-700 mb-1">评语</label>
+            <textarea id="feedback" name="feedback" rows="3"
+                      class="w-full px-3 py-2 border border-neutral-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary"></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="px-6 py-4 bg-neutral-50 rounded-b-lg flex justify-end">
+        <button id="cancelGradingBtn"
+                class="mr-3 inline-flex items-center px-4 py-2 border border-neutral-300 rounded-md shadow-sm text-sm font-medium text-neutral-700 bg-white hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+          取消
+        </button>
+        <button id="saveGradingBtn"
+                class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+          保存成绩
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 创建班级模态框：创建新班级的表单弹窗 -->
+  <div id="classModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+      <div class="px-6 py-4 border-b border-neutral-200">
+        <div class="flex justify-between items-center">
+          <h3 class="text-lg font-medium text-neutral-900">创建新班级</h3>
+          <button id="closeClassModalBtn" class="text-neutral-500 hover:text-neutral-700">
+            <i class="fa fa-times"></i>
+          </button>
+        </div>
+      </div>
+      <div class="px-6 py-4">
+        <form id="classForm">
+          <div class="mb-4">
+            <label for="className" class="block text-sm font-medium text-neutral-700 mb-1">班级名称 <span class="text-red-500">*</span></label>
+            <input type="text" id="className" name="className" required
+                   class="w-full px-3 py-2 border border-neutral-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary"
+                   placeholder="例如：2024级计算机科学1班">
+          </div>
+          <div class="mb-4">
+            <label for="classDescription" class="block text-sm font-medium text-neutral-700 mb-1">班级描述（可选）</label>
+            <textarea id="classDescription" name="classDescription" rows="3"
+                      class="w-full px-3 py-2 border border-neutral-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary"
+                      placeholder="请输入班级描述..."></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="px-6 py-4 bg-neutral-50 rounded-b-lg flex justify-end">
+        <button id="cancelClassBtn"
+                class="mr-3 inline-flex items-center px-4 py-2 border border-neutral-300 rounded-md shadow-sm text-sm font-medium text-neutral-700 bg-white hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+          取消
+        </button>
+        <button id="saveClassBtn"
+                class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+          创建班级
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 班级学生列表模态框：查看班级中的学生信息 -->
+  <div id="classStudentsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+      <div class="px-6 py-4 border-b border-neutral-200">
+        <div class="flex justify-between items-center">
+          <h3 class="text-lg font-medium text-neutral-900" id="classStudentsModalTitle">班级学生列表</h3>
+          <button id="closeClassStudentsModalBtn" class="text-neutral-500 hover:text-neutral-700">
+            <i class="fa fa-times"></i>
+          </button>
+        </div>
+      </div>
+      <div class="px-6 py-4">
+        <div id="classStudentsTableContainer">
+          <table class="min-w-full divide-y divide-neutral-200">
+            <thead class="bg-neutral-50">
+              <tr>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">学生姓名</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">学号</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">邮箱</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">加入时间</th>
+                <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-neutral-500 uppercase tracking-wider">操作</th>
+              </tr>
+            </thead>
+            <tbody id="classStudentsTableBody" class="bg-white divide-y divide-neutral-200">
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="px-6 py-4 bg-neutral-50 rounded-b-lg flex justify-end">
+        <button id="closeClassStudentsBtn"
+                class="inline-flex items-center px-4 py-2 border border-neutral-300 rounded-md shadow-sm text-sm font-medium text-neutral-700 bg-white hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+          关闭
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 删除确认模态框：删除作业的二次确认弹窗 -->
+  <div id="deleteConfirmModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-lg w-full max-w-md p-6">
+      <h3 class="text-lg font-medium text-gray-900 mb-2">确认删除</h3>
+      <p class="text-gray-500 mb-6">确定要删除该作业吗？删除后所有相关的学生提交记录也将被移除。</p>
+      <input type="hidden" id="deleteAssignmentId"> <!-- 存储要删除的作业ID -->
+      <div class="flex justify-end">
+        <button onclick="closeDeleteModal()"
+                class="mr-3 px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
+          取消
+        </button>
+        <button onclick="confirmDelete()"
+                class="px-4 py-2 bg-red-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-red-700">
+          确认删除
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ==================== 全局配置常量 ====================
+    // API基础URL：后端服务接口地址
+    const API_BASE_URL = 'http://127.0.0.1:5000';
+    // 当前选中的作业ID：用于提交情况查看和批改操作
+    let currentAssignmentId = null;
+
+    // ==================== 页面初始化 ====================
+    /**
+     * 页面DOM加载完成后执行的初始化操作
+     * 1. 验证用户登录状态和角色权限（仅教师可访问）
+     * 2. 显示当前登录教师的用户名
+     * 3. 加载作业列表和班级列表数据
+     * 4. 绑定所有页面交互事件
+     */
+    document.addEventListener('DOMContentLoaded', () => {
+      // 从本地存储获取登录凭证和用户信息
+      const token = localStorage.getItem('token');
+      const user = JSON.parse(localStorage.getItem('user'));
+
+      // 登录状态验证：无token/无用户信息/非教师角色，跳转到登录页
+      if (!token || !user || user.role !== 'teacher') {
+        window.location.href = '../login.html';
+        return;
+      }
+
+      // 显示当前登录教师的用户名
+      document.getElementById('usernameDisplay').textContent = user.username;
+
+      // 加载核心数据
+      loadAssignments();          // 加载作业列表
+      loadClasses();              // 加载班级列表
+      loadClassesForAssignment(); // 加载班级列表用于作业发布
+
+      // 绑定页面交互事件
+      bindEventListeners();
+    });
+
+    // ==================== 事件绑定 ====================
+    /**
+     * 绑定所有页面交互事件监听器
+     * 包括：模态框控制、标签切换、表单提交、退出登录等
+     */
+    function bindEventListeners() {
+      // 作业模态框控制
+      document.getElementById('createAssignmentBtn').addEventListener('click', openCreateAssignmentModal);
+      document.getElementById('closeModalBtn').addEventListener('click', closeAssignmentModal);
+      document.getElementById('cancelBtn').addEventListener('click', closeAssignmentModal);
+      document.getElementById('saveAssignmentBtn').addEventListener('click', saveAssignment);
+
+      // 提交情况模态框控制
+      document.getElementById('closeSubmissionsModalBtn').addEventListener('click', closeSubmissionsModal);
+      document.getElementById('closeSubmissionsBtn').addEventListener('click', closeSubmissionsModal);
+
+      // 批改作业模态框控制
+      document.getElementById('closeGradingModalBtn').addEventListener('click', closeGradingModal);
+      document.getElementById('cancelGradingBtn').addEventListener('click', closeGradingModal);
+      document.getElementById('saveGradingBtn').addEventListener('click', saveGrading);
+
+      // 班级管理标签切换
+      document.getElementById('assignmentTab').addEventListener('click', (e) => {
+        e.preventDefault();
+        switchTab('assignment');
+      });
+      document.getElementById('classTab').addEventListener('click', (e) => {
+        e.preventDefault();
+        switchTab('class');
+      });
+
+      // 班级管理模态框控制
+      document.getElementById('createClassBtn').addEventListener('click', openCreateClassModal);
+      document.getElementById('closeClassModalBtn').addEventListener('click', closeClassModal);
+      document.getElementById('cancelClassBtn').addEventListener('click', closeClassModal);
+      document.getElementById('saveClassBtn').addEventListener('click', saveClass);
+      document.getElementById('closeClassStudentsModalBtn').addEventListener('click', closeClassStudentsModal);
+      document.getElementById('closeClassStudentsBtn').addEventListener('click', closeClassStudentsModal);
+
+      // 退出登录按钮
+      document.getElementById('logoutBtn').addEventListener('click', logout);
+    }
+
+    // ==================== 标签页切换 ====================
+    /**
+     * 切换作业管理/班级管理标签页
+     * @param {string} tab - 要切换的标签名称（assignment/class）
+     */
+    function switchTab(tab) {
+      if (tab === 'assignment') {
+        // 显示作业管理，隐藏班级管理
+        document.getElementById('assignmentSection').classList.remove('hidden');
+        document.getElementById('classSection').classList.add('hidden');
+        // 更新标签样式
+        document.getElementById('assignmentTab').classList.add('border-primary', 'text-primary');
+        document.getElementById('assignmentTab').classList.remove('border-transparent', 'text-neutral-500');
+        document.getElementById('classTab').classList.remove('border-primary', 'text-primary');
+        document.getElementById('classTab').classList.add('border-transparent', 'text-neutral-500');
+      } else {
+        // 显示班级管理，隐藏作业管理
+        document.getElementById('classSection').classList.remove('hidden');
+        document.getElementById('assignmentSection').classList.add('hidden');
+        // 更新标签样式
+        document.getElementById('classTab').classList.add('border-primary', 'text-primary');
+        document.getElementById('classTab').classList.remove('border-transparent', 'text-neutral-500');
+        document.getElementById('assignmentTab').classList.remove('border-primary', 'text-primary');
+        document.getElementById('assignmentTab').classList.add('border-transparent', 'text-neutral-500');
+        // 重新加载班级列表
+        loadClasses();
+      }
+    }
+
+    // ==================== 作业管理功能 ====================
+    /**
+     * 加载教师创建的所有作业列表
+     * 1. 发起API请求获取作业数据
+     * 2. 渲染作业列表表格
+     * 3. 处理无数据、加载失败等异常情况
+     */
+    async function loadAssignments() {
+      const token = localStorage.getItem('token');
+      const tableBody = document.getElementById('assignmentsTableBody');
+
+      try {
+        // 发起GET请求获取作业列表
+        const response = await fetch(`${API_BASE_URL}/api/teacher/assignments`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        // 非2xx状态码视为请求失败
+        if (!response.ok) {
+          throw new Error('获取作业列表失败');
+        }
+
+        // 解析响应数据
+        const assignments = await response.json();
+
+        // 无作业记录处理
+        if (assignments.length === 0) {
+          tableBody.innerHTML = `
+            <tr>
+              <td colspan="5" class="px-6 py-10 text-center text-neutral-500">
+                暂无作业，请点击"发布新作业"按钮创建
+              </td>
+            </tr>
+          `;
+          return;
+        }
+
+        // 清空表格并渲染作业列表
+        tableBody.innerHTML = '';
+        assignments.forEach(assignment => {
+          const row = document.createElement('tr');
+          row.className = 'hover:bg-neutral-50 transition-custom';
+
+          // 格式化日期时间
+          const createdAt = formatDateTime(assignment.created_at);
+          const deadline = formatDateTime(assignment.deadline);
+
+          // 构建表格行HTML
+          row.innerHTML = `
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm font-medium text-neutral-900">${assignment.title}</div>
+              <div class="text-sm text-neutral-500 line-clamp-2">${assignment.description || '无描述'}</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm text-neutral-500">${createdAt}</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm text-neutral-500 ${new Date(assignment.deadline) < new Date() ? 'text-red-500' : ''}">
+                ${deadline}
+                ${new Date(assignment.deadline) < new Date() ? ' (已截止)' : ''}
+              </div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <button onclick="viewSubmissions(${assignment.id}, '${assignment.title}')"
+                      class="text-primary hover:text-primary/80 text-sm">
+                查看提交情况
+              </button>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+              <button onclick="deleteAssignment(${assignment.id})"
+                      class="text-red-600 hover:text-red-800">
+              删除</button>
+            </td>
+          `;
+          tableBody.appendChild(row);
+        });
+      } catch (error) {
+        // 捕获并处理异常，显示错误信息
+        console.error('加载作业失败:', error);
+        tableBody.innerHTML = `
+          <tr>
+            <td colspan="5" class="px-6 py-10 text-center text-red-500">
+              加载失败: ${error.message}
+            </td>
+          </tr>
+        `;
+      }
+    }
+
+    /**
+     * 打开创建作业模态框
+     * 1. 重置表单数据
+     * 2. 设置默认截止时间（3天后）
+     * 3. 重新加载班级列表
+     * 4. 显示模态框
+     */
+    function openCreateAssignmentModal() {
+      document.getElementById('modalTitle').textContent = '发布新作业';
+      document.getElementById('assignmentForm').reset();
+      document.getElementById('assignmentId').value = '';
+
+      // 设置默认截止时间为3天后
+      const defaultDeadline = new Date();
+      defaultDeadline.setDate(defaultDeadline.getDate() + 3);
+      document.getElementById('deadline').value = defaultDeadline.toISOString().slice(0, 16);
+
+      // 重新加载班级列表
+      loadClassesForAssignment();
+
+      // 显示模态框
+      document.getElementById('assignmentModal').classList.remove('hidden');
+    }
+
+    /**
+     * 关闭作业模态框
+     */
+    function closeAssignmentModal() {
+      document.getElementById('assignmentModal').classList.add('hidden');
+    }
+
+    /**
+     * 保存作业（创建/更新）
+     * 1. 验证表单数据
+     * 2. 发起API请求保存作业
+     * 3. 处理响应结果，刷新列表并给出反馈
+     */
+    async function saveAssignment() {
+      const token = localStorage.getItem('token');
+      const assignmentId = document.getElementById('assignmentId').value;
+      const title = document.getElementById('title').value.trim();
+      const description = document.getElementById('description').value.trim();
+      const classId = document.getElementById('classId').value;
+      const deadline = document.getElementById('deadline').value;
+
+      // 简单验证：必填项检查
+      if (!title || !deadline || !classId) {
+        alert('请填写作业标题、选择班级和截止时间');
+        return;
+      }
+
+      // 构建作业数据对象
+      const assignmentData = {
+        title,
+        description,
+        class_id: parseInt(classId),
+        deadline
+      };
+
+      try {
+        let response;
+
+        if (assignmentId) {
+          // 更新作业：PUT请求
+          response = await fetch(`${API_BASE_URL}/api/teacher/assignments/${assignmentId}`, {
+            method: 'PUT',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(assignmentData)
+          });
+        } else {
+          // 创建新作业：POST请求
+          response = await fetch(`${API_BASE_URL}/api/teacher/assignments`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(assignmentData)
+          });
+        }
+
+        // 解析响应数据
+        const data = await response.json();
+
+        // 处理请求失败情况
+        if (!response.ok || !data.success) {
+          throw new Error(data.message || '保存作业失败');
+        }
+
+        // 保存成功：关闭模态框，刷新列表，给出提示
+        closeAssignmentModal();
+        loadAssignments();
+        alert('作业保存成功');
+      } catch (error) {
+        // 处理异常
+        console.error('保存作业失败:', error);
+        alert(`保存失败: ${error.message}`);
+      }
+    }
+
+    // ==================== 批改相关功能 ====================
+    /**
+     * 查看作业提交情况
+     * @param {number} assignmentId - 作业ID
+     * @param {string} assignmentTitle - 作业标题
+     */
+    window.viewSubmissions = async function(assignmentId, assignmentTitle) {
+      // 保存当前作业ID，用于后续批改操作
+      currentAssignmentId = assignmentId;
+      const token = localStorage.getItem('token');
+      const tableBody = document.getElementById('submissionsTableBody');
+
+      // 更新模态框标题
+      document.getElementById('submissionsModalTitle').textContent = `作业提交情况: ${assignmentTitle}`;
+
+      try {
+        // 发起GET请求获取提交记录
+        const response = await fetch(`${API_BASE_URL}/api/teacher/assignments/${assignmentId}/submissions`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        // 非2xx状态码视为请求失败
+        if (!response.ok) {
+          throw new Error('获取提交记录失败');
+        }
+
+        // 解析响应数据（兼容不同返回格式）
+        const data = await response.json();
+
+        // 处理返回的数据格式
+        let submissions, statistics;
+        if (data.submissions && data.statistics) {
+          // 新格式：包含统计信息
+          submissions = data.submissions;
+          statistics = data.statistics;
+        } else {
+          // 旧格式：只有提交列表
+          submissions = data;
+          statistics = {
+            total_students: 0,
+            submitted_count: submissions.length,
+            not_submitted_count: 0,
+            score_statistics: {
+              average_score: null,
+              max_score: null,
+              min_score: null,
+              graded_count: 0
+            }
+          };
+        }
+
+        // 显示提交情况统计
+        document.getElementById('totalStudentsCount').textContent = statistics.total_students || 0;
+        document.getElementById('submittedCount').textContent = statistics.submitted_count || 0;
+        document.getElementById('notSubmittedCount').textContent = statistics.not_submitted_count || 0;
+
+        // 显示成绩统计
+        const scoreStats = statistics.score_statistics || {};
+        if (scoreStats.graded_count > 0) {
+          document.getElementById('averageScore').textContent = scoreStats.average_score !== null ? scoreStats.average_score.toFixed(2) : '-';
+          document.getElementById('maxScore').textContent = scoreStats.max_score !== null ? scoreStats.max_score : '-';
+          document.getElementById('minScore').textContent = scoreStats.min_score !== null ? scoreStats.min_score : '-';
+          document.getElementById('gradedCount').textContent = scoreStats.graded_count || 0;
+        } else {
+          document.getElementById('averageScore').textContent = '-';
+          document.getElementById('maxScore').textContent = '-';
+          document.getElementById('minScore').textContent = '-';
+          document.getElementById('gradedCount').textContent = '0';
+        }
+
+        // 渲染提交列表
+        renderSubmissions(submissions);
+
+        // 显示模态框
+        document.getElementById('submissionsModal').classList.remove('hidden');
+      } catch (error) {
+        // 处理异常，重置统计信息
+        console.error('加载提交记录失败:', error);
+        document.getElementById('totalStudentsCount').textContent = '-';
+        document.getElementById('submittedCount').textContent = '-';
+        document.getElementById('notSubmittedCount').textContent = '-';
+        document.getElementById('averageScore').textContent = '-';
+        document.getElementById('maxScore').textContent = '-';
+        document.getElementById('minScore').textContent = '-';
+        document.getElementById('gradedCount').textContent = '-';
+
+        // 显示错误信息
+        tableBody.innerHTML = `
+          <tr>
+            <td colspan="5" class="px-6 py-10 text-center text-red-500">
+              加载失败: ${error.message}
+            </td>
+          </tr>
+        `;
+        // 出错时也显示模态框，方便用户查看错误
+        document.getElementById('submissionsModal').classList.remove('hidden');
+      }
+    };
+
+    /**
+     * 渲染提交列表表格
+     * @param {Array} submissions - 提交记录数组
+     */
+    function renderSubmissions(submissions) {
+      const tableBody = document.getElementById('submissionsTableBody');
+      tableBody.innerHTML = '';
+
+      // 无提交记录处理
+      if (submissions.length === 0) {
+        tableBody.innerHTML = `
+          <tr>
+            <td colspan="4" class="px-6 py-10 text-center text-neutral-500">
+              暂无学生提交作业
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      // 渲染提交记录
+      submissions.forEach(submission => {
+        const row = document.createElement('tr');
+        row.className = 'hover:bg-neutral-50 transition-custom';
+
+        // 格式化提交时间
+        const submittedAt = formatDateTime(submission.submitted_at);
+
+        // 处理文件链接（显示下载按钮或"无文件"）
+        const fileLink = submission.file_url
+          ? `<a href="${submission.file_url}" target="_blank" class="text-primary hover:underline flex items-center">
+               <i class="fa fa-file-pdf-o mr-1"></i> 下载文件
+             </a>`
+          : '无文件';
+
+        // 构建表格行HTML
+        row.innerHTML = `
+          <td class="px-6 py-4 whitespace-nowrap">
+            <div class="text-sm font-medium text-neutral-900">${submission.username}</div>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap">
+            <div class="text-sm text-neutral-500">${submittedAt}</div>
+          </td>
+          <!-- 文件列 -->
+          <td class="px-6 py-4 whitespace-nowrap">
+            <div class="text-sm text-neutral-500">${fileLink}</div>
+          </td>
+          <!-- 成绩列 -->
+          <td class="px-6 py-4 whitespace-nowrap">
+            <div class="text-sm ${submission.score !== null ? 'text-neutral-900' : 'text-neutral-500'}">
+              ${submission.score !== null ? submission.score : '未批改'}
+            </div>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+            <button onclick="gradeSubmission(
+              ${submission.id},
+              '${escapeHtml(submission.username)}',
+              '${escapeHtml(submission.content || '')}',
+              ${submission.score === null ? 'null' : submission.score},
+              ${submission.ai_score === null ? 'null' : `'${submission.ai_score}'`},
+              '${escapeHtml(submission.ai_feedback || '')}'
+            )" class="text-primary hover:text-primary/80">
+              ${submission.score !== null ? '修改成绩' : '批改'}
+            </button>
+          </td>
+        `;
+        tableBody.appendChild(row);
+      });
+    }
+
+    /**
+     * 关闭批改作业模态框
+     */
+    function closeGradingModal() {
+      document.getElementById('gradingModal').classList.add('hidden');
+      // 清空表单数据
+      document.getElementById('gradingForm').reset();
+      document.getElementById('aiFeedbackContainer').innerHTML = '';
+    }
+
+    /**
+     * 关闭提交情况模态框
+     */
+    function closeSubmissionsModal() {
+      document.getElementById('submissionsModal').classList.add('hidden');
+      currentAssignmentId = null;
+    }
+
+    /**
+     * 打开批改作业模态框并填充数据
+     * @param {number} submissionId - 提交记录ID
+     * @param {string} studentName - 学生姓名
+     * @param {string} content - 提交内容
+     * @param {number|null} score - 已打成绩（null表示未批改）
+     * @param {number|null} aiScore - AI评分
+     * @param {string} aiFeedback - AI评价
+     */
+    window.gradeSubmission = function(submissionId, studentName, content, score, aiScore = null, aiFeedback = '') {
+      // 1. 清空之前的AI反馈
+      const aiFeedbackContainer = document.getElementById('aiFeedbackContainer');
+      aiFeedbackContainer.innerHTML = '';
+
+      // 2. 填充基础信息
+      document.getElementById('submissionId').value = submissionId;
+      document.getElementById('gradingStudentName').textContent = escapeHtml(studentName || '未知学生');
+      document.getElementById('submissionContent').innerHTML = escapeHtml(content || '无提交内容');
+      document.getElementById('score').value = score !== null ? score : '';
+      document.getElementById('feedback').value = '';
+
+      // 3. 显示AI评价（仅当有数据时）
+      if (aiScore !== null && aiScore !== '' && aiFeedback) {
+        const aiFeedbackHtml = `
+          <div class="mb-4">
+              <label class="block text-sm font-medium text-blue-700 mb-1">AI评分参考: ${escapeHtml(aiScore)}</label>
+              <div class="border border-blue-300 rounded-md p-3 bg-blue-50 min-h-[80px]">
+                  ${escapeHtml(aiFeedback)}
+              </div>
+          </div>
+        `;
+        aiFeedbackContainer.innerHTML = aiFeedbackHtml;
+      }
+
+      // 4. 显示批改模态框
+      document.getElementById('gradingModal').classList.remove('hidden');
+    };
+
+    /**
+     * 保存批改成绩
+     * 1. 验证成绩数据
+     * 2. 发起API请求保存成绩
+     * 3. 处理响应结果，刷新列表并给出反馈
+     */
+    async function saveGrading() {
+      const token = localStorage.getItem('token');
+      const submissionId = document.getElementById('submissionId').value;
+      const score = document.getElementById('score').value;
+      const feedback = document.getElementById('feedback').value.trim();
+
+      // 简单验证：成绩必须是0-100的数字
+      if (score === '' || isNaN(score) || score < 0 || score > 100) {
+        alert('请输入有效的成绩（0-100）');
+        return;
+      }
+
+      try {
+        // 发起POST请求保存成绩
+        const response = await fetch(`${API_BASE_URL}/api/teacher/submissions/${submissionId}/grade`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            score: parseInt(score),
+            feedback: feedback
+          })
+        });
+
+        // 解析响应数据
+        const data = await response.json();
+
+        // 处理请求失败情况
+        if (!response.ok || !data.success) {
+          throw new Error(data.message || '保存成绩失败');
+        }
+
+        // 保存成功：关闭模态框，刷新提交列表，给出提示
+        closeGradingModal();
+        if (currentAssignmentId) {
+          // 重新获取当前作业的提交情况
+          const assignmentTitle = document.getElementById('submissionsModalTitle').textContent.replace('作业提交情况: ', '');
+          window.viewSubmissions(currentAssignmentId, assignmentTitle);
+        }
+        alert('成绩保存成功');
+      } catch (error) {
+        // 处理异常
+        console.error('保存成绩失败:', error);
+        alert(`保存失败: ${error.message}`);
+      }
+    }
+
+    // ==================== 删除功能 ====================
+    /**
+     * 打开删除确认模态框
+     * @param {number} assignmentId - 要删除的作业ID
+     */
+    function deleteAssignment(assignmentId) {
+      document.getElementById('deleteAssignmentId').value = assignmentId;
+      document.getElementById('deleteConfirmModal').classList.remove('hidden');
+    }
+
+    /**
+     * 关闭删除确认模态框
+     */
+    function closeDeleteModal() {
+      document.getElementById('deleteConfirmModal').classList.add('hidden');
+    }
+
+    /**
+     * 确认删除作业
+     * 1. 发起DELETE请求删除作业
+     * 2. 处理响应结果，刷新列表并给出反馈
+     */
+    async function confirmDelete() {
+      const assignmentId = document.getElementById('deleteAssignmentId').value;
+
+      try {
+        // 发起DELETE请求删除作业
+        const response = await fetch(`${API_BASE_URL}/api/teacher/assignments/${assignmentId}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+
+        // 处理响应结果
+        if (response.ok) {
+          alert('作业已删除');
+          closeDeleteModal();
+          loadAssignments(); // 重新加载作业列表
+        } else {
+          const error = await response.json();
+          alert(`删除失败：${error.message || '未知错误'}`);
+        }
+      } catch (err) {
+        alert('网络错误，删除失败');
+      }
+    }
+    // ==================== 用户功能 ====================
+    /**
+     * 退出登录功能
+     * 1. 弹出确认对话框
+     * 2. 清除本地存储的登录凭证
+     * 3. 跳转到首页
+     */
+    function logout() {
+      if (confirm('确定要退出登录吗？')) {
+        localStorage.removeItem('token');    // 清除JWT令牌
+        localStorage.removeItem('user');     // 清除用户信息
+        window.location.href = '/';         // 跳转首页
+      }
+    }
+    // ==================== 班级管理功能 ====================
+    /**
+     * 加载班级列表（用于作业发布的下拉选择框）
+     */
+    async function loadClassesForAssignment() {
+      const token = localStorage.getItem('token');
+      const classSelect = document.getElementById('classId');
+
+      try {
+        // 发起GET请求获取班级列表
+        const response = await fetch(`${API_BASE_URL}/api/teacher/classes`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        // 非2xx状态码视为请求失败
+        if (!response.ok) {
+          throw new Error('获取班级列表失败');
+        }
+
+        // 解析响应数据
+        const classes = await response.json();
+
+        // 保留第一个选项（"请选择班级"）
+        classSelect.innerHTML = '<option value="">请选择班级</option>';
+
+        // 填充班级选项
+        classes.forEach(cls => {
+          const option = document.createElement('option');
+          option.value = cls.id;
+          option.textContent = `${cls.name} (${cls.code})`;
+          classSelect.appendChild(option);
+        });
+      } catch (error) {
+        // 处理异常
+        console.error('加载班级列表失败:', error);
+      }
+    }
+
+    // ==================== 工具函数 ====================
+    /**
+     * 格式化日期时间字符串
+     * @param {string} dateString - 原始日期字符串（ISO格式）
+     * @returns {string} 格式化后的本地日期时间字符串
+     */
+    function formatDateTime(dateString) {
+  if (!dateString) return '';
+
+  // 解析时直接当北京时间处理
+  const date = new Date(dateString + '+08:00');
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  const seconds = String(date.getSeconds()).padStart(2, '0');
+
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+}
+
+    /**
+     * HTML转义函数：防止XSS攻击
+     * @param {string} unsafe - 未转义的原始字符串
+     * @returns {string} 转义后的安全字符串
+     */
+    function escapeHtml(unsafe) {
+      if (!unsafe) return '';
+      return unsafe
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;")
+        .replace(/\s/g, "&nbsp;");
+    }
+
+    // ==================== 班级管理功能 ====================
+    /**
+     * 加载教师创建的所有班级列表
+     * 1. 发起API请求获取班级数据
+     * 2. 渲染班级列表表格
+     * 3. 处理无数据、加载失败等异常情况
+     */
+    async function loadClasses() {
+      const token = localStorage.getItem('token');
+      const tableBody = document.getElementById('classesTableBody');
+
+      try {
+        // 发起GET请求获取班级列表
+        const response = await fetch(`${API_BASE_URL}/api/teacher/classes`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        // 非2xx状态码视为请求失败
+        if (!response.ok) {
+          throw new Error('获取班级列表失败');
+        }
+
+        // 解析响应数据
+        const classes = await response.json();
+
+        // 无班级记录处理
+        if (classes.length === 0) {
+          tableBody.innerHTML = `
+            <tr>
+              <td colspan="5" class="px-6 py-10 text-center text-neutral-500">
+                暂无班级，请点击"创建新班级"按钮创建
+              </td>
+            </tr>
+          `;
+          return;
+        }
+
+        // 清空表格并渲染班级列表
+        tableBody.innerHTML = '';
+        classes.forEach(cls => {
+          const row = document.createElement('tr');
+          row.className = 'hover:bg-neutral-50 transition-custom';
+
+          // 格式化创建时间
+          const createdAt = formatDateTime(cls.created_at);
+
+          // 构建表格行HTML
+          row.innerHTML = `
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm font-medium text-neutral-900">${escapeHtml(cls.name)}</div>
+              ${cls.description ? `<div class="text-sm text-neutral-500">${escapeHtml(cls.description)}</div>` : ''}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm font-medium text-primary">${escapeHtml(cls.code)}</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm text-neutral-900">${cls.student_count || 0} 人</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm text-neutral-500">${createdAt}</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+              <button onclick="viewClassStudents(${cls.id}, '${escapeHtml(cls.name)}')"
+                      class="text-primary hover:text-primary/80 mr-4">
+                查看学生
+              </button>
+              <button onclick="deleteClass(${cls.id}, '${escapeHtml(cls.name)}')"
+                      class="text-red-600 hover:text-red-800">
+                <i class="fa fa-trash mr-1"></i>解散
+              </button>
+            </td>
+          `;
+          tableBody.appendChild(row);
+        });
+      } catch (error) {
+        // 处理异常
+        console.error('加载班级失败:', error);
+        tableBody.innerHTML = `
+          <tr>
+            <td colspan="5" class="px-6 py-10 text-center text-red-500">
+              加载失败: ${error.message}
+            </td>
+          </tr>
+        `;
+      }
+    }
+
+    /**
+     * 打开创建班级模态框
+     */
+    function openCreateClassModal() {
+      document.getElementById('classForm').reset();
+      document.getElementById('classModal').classList.remove('hidden');
+    }
+
+    /**
+     * 关闭班级模态框
+     */
+    function closeClassModal() {
+      document.getElementById('classModal').classList.add('hidden');
+    }
+
+    /**
+     * 保存班级（创建新班级）
+     * 1. 验证表单数据
+     * 2. 发起API请求创建班级
+     * 3. 处理响应结果，刷新列表并给出反馈
+     */
+    async function saveClass() {
+      const token = localStorage.getItem('token');
+      const name = document.getElementById('className').value.trim();
+      const description = document.getElementById('classDescription').value.trim();
+
+      // 简单验证：班级名称必填
+      if (!name) {
+        alert('请输入班级名称');
+        return;
+      }
+
+      try {
+        // 发起POST请求创建班级
+        const response = await fetch(`${API_BASE_URL}/api/teacher/classes`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            name,
+            description
+          })
+        });
+
+        // 解析响应数据
+        const data = await response.json();
+
+        // 处理请求失败情况
+        if (!response.ok || !data.success) {
+          throw new Error(data.message || '创建班级失败');
+        }
+
+        // 创建成功：关闭模态框，刷新列表，给出提示
+        closeClassModal();
+        loadClasses();
+        loadClassesForAssignment(); // 重新加载作业发布时的班级列表
+        alert(`班级创建成功！班级代码：${data.class.code}\n请将班级代码告知学生，学生可以使用此代码加入班级。`);
+      } catch (error) {
+        // 处理异常
+        console.error('创建班级失败:', error);
+        alert(`创建失败: ${error.message}`);
+      }
+    }
+
+    // 当前查看的班级ID：用于学生列表操作
+    let currentViewingClassId = null;
+
+    /**
+     * 查看班级学生列表
+     * @param {number} classId - 班级ID
+     * @param {string} className - 班级名称
+     */
+    window.viewClassStudents = async function(classId, className) {
+      // 保存当前查看的班级ID
+      currentViewingClassId = classId;
+      const token = localStorage.getItem('token');
+      const tableBody = document.getElementById('classStudentsTableBody');
+
+      // 更新模态框标题
+      document.getElementById('classStudentsModalTitle').textContent = `班级学生列表: ${className}`;
+
+      try {
+        // 发起GET请求获取学生列表
+        const response = await fetch(`${API_BASE_URL}/api/teacher/classes/${classId}/students`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        // 非2xx状态码视为请求失败
+        if (!response.ok) {
+          throw new Error('获取学生列表失败');
+        }
+
+        // 解析响应数据
+        const students = await response.json();
+
+        // 清空表格
+        tableBody.innerHTML = '';
+
+        // 无学生记录处理
+        if (students.length === 0) {
+          tableBody.innerHTML = `
+            <tr>
+              <td colspan="5" class="px-6 py-10 text-center text-neutral-500">
+                暂无学生加入该班级
+              </td>
+            </tr>
+          `;
+        } else {
+          // 渲染学生列表
+          students.forEach(student => {
+            const row = document.createElement('tr');
+            row.className = 'hover:bg-neutral-50 transition-custom';
+
+            // 格式化加入时间
+            const joinedAt = formatDateTime(student.joined_at);
+
+            // 构建表格行HTML
+            row.innerHTML = `
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm font-medium text-neutral-900">${escapeHtml(student.username)}</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-neutral-500">${escapeHtml(student.student_id || '无')}</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-neutral-500">${escapeHtml(student.email || '无')}</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-neutral-500">${joinedAt}</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                <button onclick="removeStudentFromClass(${classId}, ${student.id}, '${escapeHtml(student.username)}')"
+                        class="text-red-600 hover:text-red-800">
+                  <i class="fa fa-user-times mr-1"></i>踢出
+                </button>
+              </td>
+            `;
+            tableBody.appendChild(row);
+          });
+        }
+
+        // 显示模态框
+        document.getElementById('classStudentsModal').classList.remove('hidden');
+      } catch (error) {
+        // 处理异常
+        console.error('加载学生列表失败:', error);
+        tableBody.innerHTML = `
+          <tr>
+            <td colspan="5" class="px-6 py-10 text-center text-red-500">
+              加载失败: ${error.message}
+            </td>
+          </tr>
+        `;
+        document.getElementById('classStudentsModal').classList.remove('hidden');
+      }
+    };
+
+    /**
+     * 关闭班级学生列表模态框
+     */
+    function closeClassStudentsModal() {
+      document.getElementById('classStudentsModal').classList.add('hidden');
+    }
+
+    /**
+     * 从班级中移除学生
+     * @param {number} classId - 班级ID
+     * @param {number} studentId - 学生ID
+     * @param {string} studentName - 学生姓名
+     */
+    window.removeStudentFromClass = async function(classId, studentId, studentName) {
+      // 二次确认
+      if (!confirm(`确定要将学生"${studentName}"从班级中移除吗？`)) {
+        return;
+      }
+
+      const token = localStorage.getItem('token');
+
+      try {
+        // 发起DELETE请求移除学生
+        const response = await fetch(`${API_BASE_URL}/api/teacher/classes/${classId}/students/${studentId}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        // 解析响应数据
+        const data = await response.json();
+
+        // 处理请求失败情况
+        if (!response.ok || !data.success) {
+          throw new Error(data.message || '移除学生失败');
+        }
+
+        // 移除成功：给出提示，刷新列表
+        alert('学生已从班级中移除');
+
+        // 重新加载学生列表
+        if (currentViewingClassId === classId) {
+          const className = document.getElementById('classStudentsModalTitle').textContent.replace('班级学生列表: ', '');
+          viewClassStudents(classId, className);
+        }
+
+        // 重新加载班级列表（更新学生人数）
+        loadClasses();
+      } catch (error) {
+        // 处理异常
+        console.error('移除学生失败:', error);
+        alert(`移除失败: ${error.message}`);
+      }
+    };
+
+    /**
+     * 解散班级
+     * @param {number} classId - 班级ID
+     * @param {string} className - 班级名称
+     */
+    window.deleteClass = async function(classId, className) {
+      // 二次确认（重要操作）
+      if (!confirm(`确定要解散班级"${className}"吗？\n\n注意：解散后该班级的所有学生关联和作业将被删除，此操作不可恢复！`)) {
+        return;
+      }
+
+      const token = localStorage.getItem('token');
+
+      try {
+        // 发起DELETE请求解散班级
+        const response = await fetch(`${API_BASE_URL}/api/teacher/classes/${classId}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        // 解析响应数据
+        const data = await response.json();
+
+        // 处理请求失败情况
+        if (!response.ok || !data.success) {
+          throw new Error(data.message || '解散班级失败');
+        }
+
+        // 解散成功：给出提示，刷新列表
+        alert(`班级"${className}"已解散`);
+
+        // 重新加载班级列表
+        loadClasses();
+        
+        // 如果当前正在查看该班级的学生列表，关闭模态框
+        const modal = document.getElementById('classStudentsModal');
+        if (!modal.classList.contains('hidden')) {
+          closeClassStudentsModal();
+        }
+      } catch (error) {
+        console.error('解散班级失败:', error);
+        alert(`解散失败: ${error.message}`);
+      }
+    };
+
+</script>
+</body>
+</html>
